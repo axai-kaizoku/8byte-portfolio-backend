@@ -8,10 +8,6 @@ const defaultRoutes = [
     path: '/portfolio',
     route: portfolioRoute,
   },
-  {
-    path: '/refresh',
-    route: portfolioRoute,
-  },
 ];
 
 defaultRoutes.forEach((route) => {
