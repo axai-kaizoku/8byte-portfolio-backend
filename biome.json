@@ -1,7 +1,9 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "files": {
-    "include": ["src/**/*.ts"],
+    "include": [
+      "src/**/*.ts"
+    ],
     "ignoreUnknown": true
   },
   "formatter": {
@@ -19,7 +21,9 @@
       "arrowParentheses": "always"
     }
   },
-  "organizeImports": { "enabled": true },
+  "organizeImports": {
+    "enabled": true
+  },
   "linter": {
     "enabled": true,
     "rules": {
@@ -35,7 +39,7 @@
         "noDuplicateObjectKeys": "error",
         "noDuplicateCase": "error",
         "noAssignInExpressions": "off",
-        "noConsole": "warn"
+        "noConsole": "off"
       },
       "style": {
         "noCommaOperator": "error",

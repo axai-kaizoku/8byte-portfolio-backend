@@ -1,17 +1,16 @@
 import express from 'express';
-import authRoute from './auth.route';
-import userRoute from './user.route';
+import portfolioRoute from './portfolio.route';
 
 const router = express.Router();
 
 const defaultRoutes = [
   {
-    path: '/auth',
-    route: authRoute,
+    path: '/portfolio',
+    route: portfolioRoute,
   },
   {
-    path: '/user',
-    route: userRoute,
+    path: '/refresh',
+    route: portfolioRoute,
   },
 ];
 

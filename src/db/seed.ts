@@ -1,135 +1,118 @@
-import { hashPassword } from '@/utils/password-hash';
 import db, { pool } from './index';
-import { users } from './schema';
+import * as schema from './schema';
 
 async function seed() {
-  const data = [
+  console.log('Seeding database...');
+
+  const [user] = await db
+    .insert(schema.users)
+    .values({
+      name: 'Demo User',
+      email: 'demo@portfolio.com',
+      createdAt: new Date(),
+    })
+    .returning();
+  console.log('Created user:', user);
+
+  const sectorData = [
+    { name: 'Technology', description: 'IT and Software companies' },
+    { name: 'Financials', description: 'Banks and Financial Services' },
+    { name: 'Energy', description: 'Oil, Gas and Energy companies' },
+    { name: 'Healthcare', description: 'Pharmaceutical and Healthcare' },
+    { name: 'Consumer', description: 'Consumer goods and services' },
+  ];
+
+  const insertedSectors = await db.insert(schema.sectors).values(sectorData).returning();
+  console.log('Created sectors:', insertedSectors.length);
+
+  const sectorMap = insertedSectors.reduce(
+    (acc, sector) => {
+      acc[sector.name] = sector.id;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  const stockData = [
+    { symbol: 'RELIANCE.NS', name: 'Reliance Industries', exchange: 'NSE', sectorId: sectorMap['Energy'] },
+    { symbol: 'TCS.NS', name: 'Tata Consultancy Services', exchange: 'NSE', sectorId: sectorMap['Technology'] },
+    { symbol: 'HDFCBANK.NS', name: 'HDFC Bank', exchange: 'NSE', sectorId: sectorMap['Financials'] },
+    { symbol: 'INFY.NS', name: 'Infosys', exchange: 'NSE', sectorId: sectorMap['Technology'] },
+    { symbol: 'ICICIBANK.NS', name: 'ICICI Bank', exchange: 'NSE', sectorId: sectorMap['Financials'] },
+    { symbol: 'HINDUNILVR.NS', name: 'Hindustan Unilever', exchange: 'NSE', sectorId: sectorMap['Consumer'] },
+    { symbol: 'ITC.NS', name: 'ITC Limited', exchange: 'NSE', sectorId: sectorMap['Consumer'] },
+    { symbol: 'SBIN.NS', name: 'State Bank of India', exchange: 'NSE', sectorId: sectorMap['Financials'] },
+    { symbol: 'BHARTIARTL.NS', name: 'Bharti Airtel', exchange: 'NSE', sectorId: sectorMap['Technology'] },
+    { symbol: 'SUNPHARMA.NS', name: 'Sun Pharmaceutical', exchange: 'NSE', sectorId: sectorMap['Healthcare'] },
+  ];
+
+  const insertedStocks = await db.insert(schema.stocks).values(stockData).returning();
+  console.log('Created stocks:', insertedStocks.length);
+
+  const holdingsData = [
     {
-      name: 'Vivi',
-      email: 'vmoorman0@utexas.edu',
-      password: 'uM5`d_.E37"h7z',
-      role: 'user',
-      isEmailVerified: false,
+      userId: user.id,
+      stockId: insertedStocks[0].id,
+      purchasePrice: '2400.50',
+      quantity: 10,
+      purchaseDate: new Date('2024-01-15'),
     },
     {
-      name: 'Judye',
-      email: 'jbarrick1@studiopress.com',
-      password: 'fE8%VGkMjD|yq$_`',
-      role: 'user',
-      isEmailVerified: false,
+      userId: user.id,
+      stockId: insertedStocks[1].id,
+      purchasePrice: '3500.00',
+      quantity: 15,
+      purchaseDate: new Date('2024-02-10'),
     },
     {
-      name: 'Haley',
-      email: 'helders2@bravesites.com',
-      password: 'lU1+a0<b7>B',
-      role: 'user',
-      isEmailVerified: true,
+      userId: user.id,
+      stockId: insertedStocks[2].id,
+      purchasePrice: '1650.75',
+      quantity: 20,
+      purchaseDate: new Date('2024-01-20'),
     },
     {
-      name: 'Gareth',
-      email: 'gfunnell3@aol.com',
-      password: 'lC4/HT0yN',
-      role: 'user',
-      isEmailVerified: true,
+      userId: user.id,
+      stockId: insertedStocks[3].id,
+      purchasePrice: '1450.00',
+      quantity: 25,
+      purchaseDate: new Date('2024-03-05'),
     },
     {
-      name: 'Farrel',
-      email: 'fthridgould4@comsenz.com',
-      password: 'uI3)pCQ?',
-      role: 'user',
-      isEmailVerified: false,
+      userId: user.id,
+      stockId: insertedStocks[4].id,
+      purchasePrice: '950.25',
+      quantity: 30,
+      purchaseDate: new Date('2024-02-15'),
     },
     {
-      name: 'Sigfried',
-      email: 'ssimonich5@samsung.com',
-      password: 'vG0}I5E}"(ZEZr',
-      role: 'user',
-      isEmailVerified: true,
+      userId: user.id,
+      stockId: insertedStocks[5].id,
+      purchasePrice: '2300.00',
+      quantity: 12,
+      purchaseDate: new Date('2024-01-25'),
     },
     {
-      name: 'Sonya',
-      email: 'sdelos6@guardian.co.uk',
-      password: 'vK5,4C.FG',
-      role: 'user',
-      isEmailVerified: true,
+      userId: user.id,
+      stockId: insertedStocks[6].id,
+      purchasePrice: '420.50',
+      quantity: 50,
+      purchaseDate: new Date('2024-03-01'),
     },
     {
-      name: 'Candie',
-      email: 'cdanelet7@furl.net',
-      password: 'gT0.q@Ks@bg/',
-      role: 'user',
-      isEmailVerified: false,
-    },
-    {
-      name: 'Hodge',
-      email: 'hzute8@disqus.com',
-      password: 'mT4|l)W*MI5N\\O7<',
-      role: 'user',
-      isEmailVerified: false,
-    },
-    {
-      name: 'Granthem',
-      email: 'gcoldham9@chron.com',
-      password: 'fN7$DW2M@FX',
-      role: 'user',
-      isEmailVerified: true,
-    },
-    {
-      name: 'Gus',
-      email: 'gsautera@statcounter.com',
-      password: 'jI7|hb`|/0k',
-      role: 'user',
-      isEmailVerified: false,
-    },
-    {
-      name: 'Misha',
-      email: 'mfrearb@redcross.org',
-      password: 'hA8%tvSd*8E',
-      role: 'user',
-      isEmailVerified: true,
-    },
-    {
-      name: 'Marty',
-      email: 'mklimkinc@addthis.com',
-      password: 'gW8<StRW@,x=DSTC',
-      role: 'user',
-      isEmailVerified: false,
-    },
-    {
-      name: 'Eolande',
-      email: 'egeerd@forbes.com',
-      password: 'qH2"\\2,G4fm,8tk',
-      role: 'user',
-      isEmailVerified: true,
-    },
-    {
-      name: 'Piotr',
-      email: 'pnozzoliie@princeton.edu',
-      password: 'rJ6\\gq=g3aK7u?$Y',
-      role: 'user',
-      isEmailVerified: false,
+      userId: user.id,
+      stockId: insertedStocks[7].id,
+      purchasePrice: '580.00',
+      quantity: 40,
+      purchaseDate: new Date('2024-02-20'),
     },
   ];
 
-  const usersData = await Promise.all(
-    data.map(async (usr) => {
-      const hashedPass = await hashPassword(usr.password);
-      return {
-        ...usr,
-        password: hashedPass,
-      };
-    }),
-  );
+  const insertedHoldings = await db.insert(schema.holdings).values(holdingsData).returning();
+  console.log('Created holdings:', insertedHoldings.length);
 
-  try {
-    await db
-      .insert(users)
-      .values(usersData as (typeof users.$inferInsert)[])
-      .onConflictDoNothing(); // ✅ Skips duplicates instead of throwing errors
-  } catch (error) {
-  } finally {
-    await pool.end();
-  }
+  console.log('Seeding completed successfully!');
+  await pool.end();
 }
 
 seed();

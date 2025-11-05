@@ -1,55 +1,86 @@
-import { rolesAllowed } from '@/config';
-import { tokenTypes } from '@/config/tokens';
-import { relations, sql } from 'drizzle-orm';
-import { boolean, pgEnum, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { relations } from "drizzle-orm";
+import { decimal, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
-// ===== Enums =====
-export const roleEnum = pgEnum('role', rolesAllowed);
+const commonIdSchema = (columnName: string) => uuid(columnName).defaultRandom().primaryKey();
 
-export const tokenTypeEnum = pgEnum('token_type', [
-  tokenTypes.ACCESS,
-  tokenTypes.REFRESH,
-  tokenTypes.RESET_PASSWORD,
-  tokenTypes.VERIFY_EMAIL,
-]);
-
-// ===== Tables =====
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  password: varchar('password', { length: 255 }).notNull(),
-  role: roleEnum('role').default('user').notNull(),
-  isEmailVerified: boolean('is_email_verified').default(false),
-  createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp('updated_at')
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull()
-    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+export const users = pgTable("users", {
+  id: commonIdSchema("id"),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const tokens = pgTable('tokens', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  token: varchar('token', { length: 255 }).notNull().unique(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
-  type: tokenTypeEnum('token_type').notNull(),
-  expires: timestamp('expires').notNull(),
-  blacklisted: boolean('blacklisted').default(false),
-  createdAt: timestamp('created_at').default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp('updated_at')
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull()
-    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+export const sectors = pgTable("sectors", {
+  id: commonIdSchema("id"),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description"),
 });
 
-// ===== Relations =====
-export const userRelations = relations(users, ({ many }) => ({
-  tokens: many(tokens),
+export const stocks = pgTable("stocks", {
+  id: commonIdSchema("id"),
+  symbol: varchar("symbol", { length: 20 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  exchange: varchar("exchange", { length: 10 }).notNull(), // NSE/BSE
+  sectorId: integer("sector_id").references(() => sectors.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const holdings = pgTable("holdings", {
+  id: commonIdSchema("id"),
+  userId: text("user_id")
+    .references(() => users.id)
+    .notNull(),
+  stockId: text("stock_id")
+    .references(() => stocks.id)
+    .notNull(),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
+  quantity: integer("quantity").notNull(),
+  purchaseDate: timestamp("purchase_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const stockPrices = pgTable("stock_prices", {
+  id: commonIdSchema("id"),
+  stockId: text("stock_id")
+    .references(() => stocks.id)
+    .notNull(),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  peRatio: decimal("pe_ratio", { precision: 10, scale: 2 }),
+  latestEarnings: decimal("latest_earnings", { precision: 15, scale: 2 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const usersRelations = relations(users, ({ many }) => ({
+  holdings: many(holdings),
 }));
 
-export const tokenRelations = relations(tokens, ({ one }) => ({
+export const sectorsRelations = relations(sectors, ({ many }) => ({
+  stocks: many(stocks),
+}));
+
+export const stocksRelations = relations(stocks, ({ one, many }) => ({
+  sector: one(sectors, {
+    fields: [stocks.sectorId],
+    references: [sectors.id],
+  }),
+  holdings: many(holdings),
+  prices: many(stockPrices),
+}));
+
+export const holdingsRelations = relations(holdings, ({ one }) => ({
   user: one(users, {
-    fields: [tokens.userId],
+    fields: [holdings.userId],
     references: [users.id],
+  }),
+  stock: one(stocks, {
+    fields: [holdings.stockId],
+    references: [stocks.id],
+  }),
+}));
+
+export const stockPricesRelations = relations(stockPrices, ({ one }) => ({
+  stock: one(stocks, {
+    fields: [stockPrices.stockId],
+    references: [stocks.id],
   }),
 }));

@@ -19,8 +19,6 @@
     "db:reset": "rimraf drizzle && npm run db:migrate && npm run db:push",
     "db:studio": "npx drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
-    "docker:start": "docker compose up --env-file ./.env.production --build -d",
-    "docker:db": "docker compose up -d database",
     "generate": "plop",
     "prepare": "husky"
   },
@@ -28,27 +26,21 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "axios": "^1.13.2",
     "compression": "^1.8.0",
-    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.40.0",
     "express": "^4.21.2",
     "express-async-errors": "^3.1.1",
-    "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "http-status": "^2.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "moment": "^2.30.1",
+    "ioredis": "^5.8.2",
     "morgan": "^1.10.0",
-    "nodemailer": "^6.10.1",
     "pg": "^8.13.3",
-    "pm2": "^6.0.5",
-    "rimraf": "^6.0.1",
-    "validator": "^13.12.0",
     "winston": "^3.17.0",
+    "yahoo-finance2": "^3.10.1",
     "zod": "^3.25.75"
   },
   "devDependencies": {
@@ -56,16 +48,13 @@
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
-    "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.5",
-    "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.11",
-    "@types/validator": "^13.12.2",
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.30.5",
-    "plop": "^4.0.1",
     "husky": "^9.1.7",
+    "plop": "^4.0.1",
     "tsup": "^8.4.0",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
@@ -85,6 +74,5 @@
     ],
     "splitting": false,
     "clean": true
-  },
-  "packageManager": "pnpm@10.2.0"
+  }
 }
