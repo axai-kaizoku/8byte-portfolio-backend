@@ -1,53 +1,53 @@
-import { relations } from "drizzle-orm";
-import { decimal, integer, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { relations } from 'drizzle-orm';
+import { decimal, integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 
 const commonIdSchema = (columnName: string) => uuid(columnName).defaultRandom().primaryKey();
 
-export const users = pgTable("users", {
-  id: commonIdSchema("id"),
-  name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const users = pgTable('users', {
+  id: commonIdSchema('id'),
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const sectors = pgTable("sectors", {
-  id: commonIdSchema("id"),
-  name: varchar("name", { length: 100 }).notNull().unique(),
-  description: text("description"),
+export const sectors = pgTable('sectors', {
+  id: commonIdSchema('id'),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  description: text('description'),
 });
 
-export const stocks = pgTable("stocks", {
-  id: commonIdSchema("id"),
-  symbol: varchar("symbol", { length: 20 }).notNull().unique(),
-  name: varchar("name", { length: 255 }).notNull(),
-  exchange: varchar("exchange", { length: 10 }).notNull(), // NSE/BSE
-  sectorId: integer("sector_id").references(() => sectors.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+export const stocks = pgTable('stocks', {
+  id: commonIdSchema('id'),
+  symbol: varchar('symbol', { length: 20 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  exchange: varchar('exchange', { length: 10 }).notNull(), // NSE/BSE
+  sectorId: text('sector_id').references(() => sectors.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const holdings = pgTable("holdings", {
-  id: commonIdSchema("id"),
-  userId: text("user_id")
+export const holdings = pgTable('holdings', {
+  id: commonIdSchema('id'),
+  userId: text('user_id')
     .references(() => users.id)
     .notNull(),
-  stockId: text("stock_id")
+  stockId: text('stock_id')
     .references(() => stocks.id)
     .notNull(),
-  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
-  quantity: integer("quantity").notNull(),
-  purchaseDate: timestamp("purchase_date").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  purchasePrice: decimal('purchase_price', { precision: 10, scale: 2 }).notNull(),
+  quantity: integer('quantity').notNull(),
+  purchaseDate: timestamp('purchase_date').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const stockPrices = pgTable("stock_prices", {
-  id: commonIdSchema("id"),
-  stockId: text("stock_id")
+export const stockPrices = pgTable('stock_prices', {
+  id: commonIdSchema('id'),
+  stockId: text('stock_id')
     .references(() => stocks.id)
     .notNull(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  peRatio: decimal("pe_ratio", { precision: 10, scale: 2 }),
-  latestEarnings: decimal("latest_earnings", { precision: 15, scale: 2 }),
-  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  peRatio: decimal('pe_ratio', { precision: 10, scale: 2 }),
+  latestEarnings: decimal('latest_earnings', { precision: 15, scale: 2 }),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
