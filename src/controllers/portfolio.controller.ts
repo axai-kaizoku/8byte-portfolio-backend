@@ -1,4 +1,3 @@
-import { redis } from '@/config/redis';
 import db from '@/db';
 import { holdings } from '@/db/schema';
 import {
@@ -66,7 +65,7 @@ const getPortflio: RequestHandler = async (_req, res) => {
     });
 
     holdingsData.forEach((h) => {
-      h.portfolioPercentage = (h.investment / totalInvestment) * 100;
+      h.portfolioPercentage = Number.parseFloat(((h.investment / totalInvestment) * 100).toFixed(2));
     });
 
     const sectorMap = new Map<string, SectorSummary>();
@@ -75,22 +74,16 @@ const getPortflio: RequestHandler = async (_req, res) => {
         sectorMap.set(holding.sectorName, {
           sectorName: holding.sectorName,
           totalInvestment: 0,
-          totalPresentValue: 0,
-          gainLoss: 0,
-          gainLossPercentage: 0,
           holdings: [],
         });
       }
       const sector = sectorMap.get(holding.sectorName)!;
       sector.holdings.push(holding);
       sector.totalInvestment += holding.investment;
-      sector.totalPresentValue += holding.presentValue;
     });
 
     const sectors: SectorSummary[] = Array.from(sectorMap.values()).map((sector) => ({
       ...sector,
-      gainLoss: sector.totalPresentValue - sector.totalInvestment,
-      gainLossPercentage: ((sector.totalPresentValue - sector.totalInvestment) / sector.totalInvestment) * 100,
     }));
 
     const totalPresentValue = holdingsData.reduce((sum, h) => sum + h.presentValue, 0);
@@ -109,20 +102,4 @@ const getPortflio: RequestHandler = async (_req, res) => {
   }
 };
 
-const refreshStockPrice: RequestHandler = async (req, res) => {
-  try {
-    const { symbol } = req.params;
-
-    await redis.del(`price:${symbol}`);
-    await redis.del(`fundamentals:${symbol}`);
-
-    const [price, fundamentals] = await Promise.all([getStockPrice(symbol), getStockFundamentals(symbol)]);
-
-    res.json({ symbol, price, ...fundamentals });
-  } catch (error) {
-    console.error('Error refreshing stock data:', error);
-    res.status(500).json({ error: 'Failed to refresh stock data' });
-  }
-};
-
-export default { getPortflio, refreshStockPrice };
+export default { getPortflio };

@@ -39,17 +39,6 @@ export const holdings = pgTable('holdings', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const stockPrices = pgTable('stock_prices', {
-  id: commonIdSchema('id'),
-  stockId: text('stock_id')
-    .references(() => stocks.id)
-    .notNull(),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-  peRatio: decimal('pe_ratio', { precision: 10, scale: 2 }),
-  latestEarnings: decimal('latest_earnings', { precision: 15, scale: 2 }),
-  timestamp: timestamp('timestamp').defaultNow().notNull(),
-});
-
 export const usersRelations = relations(users, ({ many }) => ({
   holdings: many(holdings),
 }));
@@ -64,7 +53,6 @@ export const stocksRelations = relations(stocks, ({ one, many }) => ({
     references: [sectors.id],
   }),
   holdings: many(holdings),
-  prices: many(stockPrices),
 }));
 
 export const holdingsRelations = relations(holdings, ({ one }) => ({
@@ -74,13 +62,6 @@ export const holdingsRelations = relations(holdings, ({ one }) => ({
   }),
   stock: one(stocks, {
     fields: [holdings.stockId],
-    references: [stocks.id],
-  }),
-}));
-
-export const stockPricesRelations = relations(stockPrices, ({ one }) => ({
-  stock: one(stocks, {
-    fields: [stockPrices.stockId],
     references: [stocks.id],
   }),
 }));

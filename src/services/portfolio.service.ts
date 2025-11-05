@@ -23,9 +23,6 @@ export interface PortfolioHolding {
 export interface SectorSummary {
   sectorName: string;
   totalInvestment: number;
-  totalPresentValue: number;
-  gainLoss: number;
-  gainLossPercentage: number;
   holdings: PortfolioHolding[];
 }
 
@@ -42,7 +39,7 @@ async function getStockPrice(symbol: string): Promise<number | null> {
     const price = quote.regularMarketPrice;
 
     if (price) {
-      await redis.setex(cacheKey, 60, price.toString());
+      await redis.setex(cacheKey, 20, price.toString());
       return price;
     }
     return null;
